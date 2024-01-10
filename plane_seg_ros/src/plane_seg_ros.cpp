@@ -88,7 +88,7 @@ class Pass{
     ros::Subscriber point_cloud_sub_, grid_map_sub_, pose_sub_;
     ros::Publisher received_cloud_pub_, hull_cloud_pub_, hull_markers_pub_, look_pose_pub_, hull_marker_array_pub_;
 
-    std::string fixed_frame_ = "odom";  // Frame in which all results are published. "odom" for backwards-compatibility. Likely should be "map".
+    std::string fixed_frame_ = "odometry/world";  // Frame in which all results are published. "odom" for backwards-compatibility. Likely should be "map".
 
     tf2_ros::Buffer tfBuffer_;
     tf2_ros::TransformListener tfListener_;
@@ -102,8 +102,9 @@ Pass::Pass(ros::NodeHandle node_):
     tfListener_(tfBuffer_) {
   grid_map_sub_ = node_.subscribe("/elevation_mapping/elevation_map", 100,
                                     &Pass::elevationMapCallback, this);
-  point_cloud_sub_ = node_.subscribe("/plane_seg/point_cloud_in", 100,
-                                    &Pass::pointCloudCallback, this);
+  point_cloud_sub_ = node_.subscribe("/D435_head_camera/depth/color/points", 100,
+              //"/plane_seg/point_cloud_in", 100,
+              &Pass::pointCloudCallback, this);
 
   received_cloud_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/plane_seg/received_cloud", 10);
   hull_cloud_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/plane_seg/hull_cloud", 10);
