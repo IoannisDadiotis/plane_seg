@@ -100,12 +100,16 @@ Pass::Pass(ros::NodeHandle node_):
     node_(node_),
     tfBuffer_(ros::Duration(5.0)),
     tfListener_(tfBuffer_) {
-  grid_map_sub_ = node_.subscribe("/elevation_mapping/elevation_map", 100,
-                                    &Pass::elevationMapCallback, this);
-  point_cloud_sub_ = node_.subscribe("/D435_head_camera/depth/color/points", 100,
-              //"/plane_seg/point_cloud_in", 100,
-              &Pass::pointCloudCallback, this);
+  // get ros topic from ros server
+  std::string pointCloudTopic, elevationMapTopic;
+  node_.getParam("/plane_seg/pointcloud_topic", pointCloudTopic);
+  node_.getParam("/plane_seg/elevation_map_topic", elevationMapTopic);
 
+  // subscribers
+  grid_map_sub_ = node_.subscribe(elevationMapTopic, 100, &Pass::elevationMapCallback, this);
+  point_cloud_sub_ = node_.subscribe(pointCloudTopic, 100, &Pass::pointCloudCallback, this);
+
+  // publishers
   received_cloud_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/plane_seg/received_cloud", 10);
   hull_cloud_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/plane_seg/hull_cloud", 10);
   hull_markers_pub_ = node_.advertise<visualization_msgs::Marker>("/plane_seg/hull_markers", 10);
@@ -225,6 +229,20 @@ void Pass::pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg){
   {
     ROS_WARN_STREAM("Cannot look up transform from '" << msg->header.frame_id << "' to fixed frame ('" << fixed_frame_ <<"')");
   }
+
+  // Look up transform from fixed frame to robot base_link
+//  geometry_msgs::TransformStamped fixed_frame_to_base_link_tf;
+//  Eigen::Isometry3d map_T_baselink;
+//  if (tfBuffer_.canTransform(fixed_frame_, "base_link", msg->header.stamp, ros::Duration(0.0)))
+//  {
+//    fixed_frame_to_base_link_tf = tfBuffer_.lookupTransform(fixed_frame_, "base_link", msg->header.stamp, ros::Duration(0.0));
+//    map_T_baselink = tf2::transformToEigen(fixed_frame_to_base_link_tf);
+//    ROS_INFO_STREAM("base_link = " << map_T_baselink.translation().transpose());
+//  }
+//  else
+//  {
+//    ROS_WARN_STREAM("Cannot look up transform from base_link to fixed frame ('" << fixed_frame_ <<"')");
+//  }
 
   Eigen::Vector3f origin, lookDir;
   origin << map_T_pointcloud.translation().cast<float>();       // from fixed frame to point cloud frame

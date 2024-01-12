@@ -3,5 +3,7 @@
   <node name="plane_seg" pkg="plane_seg_ros" type="plane_seg_ros" output="screen">
     <remap from="/plane_seg/pose" to="/state_estimator/pose_in_odom"/>
     <param name="/run_test_program" value="false" />
+    <param name="/pointcloud_topic" value="/D435_head_camera/depth/color/points" />
+    <param name="/elevation_map_topic" value="/elevation_mapping/elevation_map" />
   </node>
 </launch>
