@@ -229,8 +229,8 @@ void Pass::pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg){
   Eigen::Vector3f origin, lookDir;
   origin << map_T_pointcloud.translation().cast<float>();       // from fixed frame to point cloud frame
   lookDir = convertRobotPoseToSensorLookDir(map_T_pointcloud);
-  ROS_INFO_STREAM("origin is " << origin.transpose());
-  ROS_INFO_STREAM("lookDir is " << lookDir.transpose());
+//  ROS_INFO_STREAM("origin is " << origin.transpose());
+//  ROS_INFO_STREAM("lookDir is " << lookDir.transpose());
 //  ROS_INFO_STREAM("Pointcloud has frame_id " << msg->header.frame_id);
   processCloud(msg->header.frame_id, inCloud, origin, lookDir);
 }
@@ -306,6 +306,7 @@ void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::P
   // this was 5 for LIDAR. changing to 10 really improved elevation map segmentation
   // I think its because the RGB-D map can be curved
   fitter.setMaxAngleOfPlaneSegmenter(10);
+  fitter.setMaxAngleFromHorizontal(120);
 
   result_ = fitter.go();
 #ifdef WITH_TIMING
