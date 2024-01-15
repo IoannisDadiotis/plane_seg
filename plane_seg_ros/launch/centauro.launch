@@ -2,10 +2,17 @@
 <launch>
 
   <!--arg name="pointcloud_topic" default="/velodyne_points"/-->
+  <arg name="pointcloud_topic" default="/D435_head_camera/depth/color/points"/>
   <arg name="elevation_map_topic" default="/elevation_mapping/elevation_map"/>
-  <arg name="pointcloud_topic" value="/D435_head_camera/depth/color/points" />
-
-  <node name="plane_seg" pkg="plane_seg_ros" type="plane_seg_ros" output="screen">
+  <!--arg name="seg_start_delay" default="0.0" /-->   
+  
+  <!-- remove points on the robot -->
+  <arg name="filter_robot_body" default="true" />
+  <arg if="$(arg filter_robot_body)" name="pointcloud_topic" value="/D435_head_camera/depth/color/points_filtered" />
+  <include if="$(arg filter_robot_body)" file="$(find robot_body_filter_node)/launch/filter_sensors_cloud.launch" />
+  <!--arg if="$(arg filter_robot_body)" name="seg_start_delay" value="1.0" /-->   
+  
+  <node name="plane_seg" pkg="plane_seg_ros" type="plane_seg_ros" output="screen"> <!--launch-prefix="bash -c 'sleep $(arg seg_start_delay); $0 $@' "-->
     <remap from="/plane_seg/pose" to="/state_estimator/pose_in_odom"/>
     <param name="run_test_program" value="false" />
     <param name="pointcloud_topic" value="$(arg pointcloud_topic)" />
