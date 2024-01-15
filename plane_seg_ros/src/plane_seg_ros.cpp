@@ -106,8 +106,8 @@ Pass::Pass(ros::NodeHandle node_):
   node_.getParam("/plane_seg/elevation_map_topic", elevationMapTopic);
 
   // subscribers
-  grid_map_sub_ = node_.subscribe(elevationMapTopic, 100, &Pass::elevationMapCallback, this);
-  point_cloud_sub_ = node_.subscribe(pointCloudTopic, 100, &Pass::pointCloudCallback, this);
+  grid_map_sub_ = node_.subscribe(elevationMapTopic, 1, &Pass::elevationMapCallback, this);
+  point_cloud_sub_ = node_.subscribe(pointCloudTopic, 1, &Pass::pointCloudCallback, this);
 
   // publishers
   received_cloud_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/plane_seg/received_cloud", 10);
