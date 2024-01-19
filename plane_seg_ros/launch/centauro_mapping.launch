@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<launch>
+
+    <!--arg name="pointcloud_topic" default="/velodyne_points"/-->
+    <arg name="rviz" default="false"/>
+    <arg name="pointcloud_topic" default="/D435_head_camera/depth/color/points"/>
+    <arg name="filter_robot_body" default="true" />         <!-- remove robot points -->
+    <arg if="$(arg filter_robot_body)" name="pointcloud_topic" value="/D435_head_camera/depth/color/points_filtered" />
+    <include if="$(arg filter_robot_body)" file="$(find robot_body_filter_node)/launch/filter_sensors_cloud.launch" /> <!-- TODO: pass here the input topic -->
+
+    <!-- octomap for mapping -->
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+        <param name="resolution" value="0.01" />
+        <!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
+        <param name="frame_id" type="string" value="odometry/world" />
+        <!-- maximum range to integrate (speedup!) -->
+        <param name="sensor_model/max_range" value="5.0" />
+        <!-- data source to integrate (PointCloud2) -->
+        <remap from="cloud_in" to="$(arg pointcloud_topic)" />
+    </node>
+
+
+    <include file="$(find plane_seg_ros)/launch/centauro.launch">
+        <arg name="filter_robot_body" value="false" />
+        <arg name="pointcloud_topic" value="/octomap_point_cloud_centers"/> <!-- marker size in meter-->
+    </include>
+
+    <node if="$(arg rviz)" name="rviz_plane_seg" pkg="rviz" type="rviz" args="-d $(find plane_seg_ros)/config/plane_seg.rviz"  />
+</launch>
