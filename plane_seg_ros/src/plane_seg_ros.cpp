@@ -2,7 +2,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <ros/package.h>
-
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 #include <eigen_conversions/eigen_msg.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -74,12 +75,25 @@ class Pass{
     void processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::Ptr& inCloud, Eigen::Vector3f origin, Eigen::Vector3f lookDir);
     void processFromFile(int test_example);
 
+    /**
+     * @brief publishHullsAsCloud publishes the hull points.
+     */
     void publishHullsAsCloud(const std::string& cloud_frame, std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_ptrs, int secs, int nsecs);
 
+    /**
+     * @brief publishHullsAsMarkers publishes line markers. Each message is a marker, the number of points is double
+     * so that it draws a line.
+     */
     void publishHullsAsMarkers(const std::string& cloud_frame, std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs, int secs, int nsecs);
+
+    /**
+     * @brief publishHullsAsMarkerArray publishes line markers similar to publishHullAsMarkers but the the data
+     * are an array of markers, each marker represents a hull.
+     */
     void publishHullsAsMarkerArray(const std::string& cloud_frame, std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs, int secs, int nsecs);
     void printResultAsJson();
     void publishResult(const std::string& cloud_frame);
+    void publishHullPose() const;
 
   private:
     ros::NodeHandle node_;
@@ -425,6 +439,8 @@ void Pass::publishResult(const std::string& cloud_frame){
   if (hull_cloud_pub_.getNumSubscribers() > 0) publishHullsAsCloud(cloud_frame, cloud_ptrs, 0, 0);
   if (hull_markers_pub_.getNumSubscribers() > 0) publishHullsAsMarkers(cloud_frame, cloud_ptrs, 0, 0);
   if (hull_marker_array_pub_.getNumSubscribers() > 0) publishHullsAsMarkerArray(cloud_frame, cloud_ptrs, 0, 0);
+  publishHullPose();
+//  printResultAsJson();
 
   //pcl::PCDWriter pcd_writer_;
   //pcd_writer_.write<pcl::PointXYZ> ("/home/mfallon/out.pcd", cloud, false);
@@ -624,6 +640,20 @@ void Pass::publishHullsAsMarkerArray(const std::string& cloud_frame,
     ma.markers.push_back(marker);
   }
   hull_marker_array_pub_.publish(ma);
+}
+
+void Pass::publishHullPose() const {
+    int i = 0;
+    for (auto& i_hull: result_.mBlocks) {
+        static tf2_ros::TransformBroadcaster br;
+        Eigen::Isometry3d planePoseD = static_cast<Eigen::Isometry3d>(i_hull.mPose);
+        geometry_msgs::TransformStamped transformStamped = tf2::eigenToTransform(planePoseD);
+        transformStamped.header.stamp = ros::Time::now();
+        transformStamped.header.frame_id = "odometry/world";
+        transformStamped.child_frame_id = "hull_" + std::to_string(i);
+        br.sendTransform(transformStamped);
+        i++;
+    }
 }
 
 int main( int argc, char** argv ){

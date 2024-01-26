@@ -13,14 +13,17 @@ public:
     MaximumHullPointOverlap
   };
 
+  /**
+   * @brief The Block struct seems to represent a detected plane/hull.
+   */
   struct Block {
-    Eigen::Vector3f mSize;
-    Eigen::Isometry3f mPose;
-    std::vector<Eigen::Vector3f> mHull;
+    Eigen::Vector3f mSize;              // size of plane
+    Eigen::Isometry3f mPose;            // pose
+    std::vector<Eigen::Vector3f> mHull; // vector of the points that define the hull
   };
   struct Result {
     bool mSuccess;
-    std::vector<Block> mBlocks;
+    std::vector<Block> mBlocks;         // number of planes/hulls detected
     Eigen::Vector4f mGroundPlane;
     std::vector<Eigen::Vector3f> mGroundPolygon;
   };
