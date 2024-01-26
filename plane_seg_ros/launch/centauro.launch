@@ -12,7 +12,7 @@
   <include if="$(arg filter_robot_body)" file="$(find robot_body_filter_node)/launch/filter_sensors_cloud.launch" />
   <!--arg if="$(arg filter_robot_body)" name="seg_start_delay" value="1.0" /-->   
   
-  <node name="plane_seg" pkg="plane_seg_ros" type="plane_seg_ros" output="screen"> <!--launch-prefix="bash -c 'sleep $(arg seg_start_delay); $0 $@' "-->
+  <node name="plane_seg" pkg="plane_seg_ros" type="plane_seg_ros_node" output="screen"> <!--launch-prefix="bash -c 'sleep $(arg seg_start_delay); $0 $@' "-->
     <remap from="/plane_seg/pose" to="/state_estimator/pose_in_odom"/>
     <param name="run_test_program" value="false" />
     <param name="pointcloud_topic" value="$(arg pointcloud_topic)" />
