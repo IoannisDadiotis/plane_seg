@@ -51,6 +51,10 @@ class Pass{
     tf2_ros::TransformListener tfListener_;
 
     planeseg::BlockFitter::Result result_;
+
+    // usefull in case pointcloud is wrt fixed frame
+    std::string camera_frame_;
+    bool pcld_in_fixed_frame_;
 };
 
 #endif // PASS_H

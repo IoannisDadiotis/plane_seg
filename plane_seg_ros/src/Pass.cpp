@@ -41,13 +41,12 @@ Eigen::Vector3f convertRobotPoseToSensorLookDir(Eigen::Isometry3d robot_pose){
 /******************************************************************************************************/
 /******************************************************************************************************/
 Pass::Pass(ros::NodeHandle node_):
-    node_(node_),
-    tfBuffer_(ros::Duration(5.0)),
-    tfListener_(tfBuffer_) {
+    node_(node_), tfBuffer_(ros::Duration(5.0)), tfListener_(tfBuffer_) {
   // get ros topic from ros server
   std::string pointCloudTopic, elevationMapTopic;
   node_.getParam("/plane_seg/pointcloud_topic", pointCloudTopic);
   node_.getParam("/plane_seg/elevation_map_topic", elevationMapTopic);
+  node_.getParam("/plane_seg/camera_frame", camera_frame_);
 
   // subscribers
   grid_map_sub_ = node_.subscribe(elevationMapTopic, 1, &Pass::elevationMapCallback, this);
@@ -59,6 +58,15 @@ Pass::Pass(ros::NodeHandle node_):
   hull_markers_pub_ = node_.advertise<visualization_msgs::Marker>("/plane_seg/hull_markers", 10);
   hull_marker_array_pub_ = node_.advertise<visualization_msgs::MarkerArray>("/plane_seg/hull_marker_array", 10);
   look_pose_pub_ = node_.advertise<geometry_msgs::PoseStamped>("/plane_seg/look_pose", 10);
+
+  // check if pointcloud frame is the fixed frame, then
+  boost::shared_ptr<sensor_msgs::PointCloud2 const> pointcloudMsgPtr = nullptr;
+  pointcloudMsgPtr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(pointCloudTopic, node_, ros::Duration(1));
+  if (pointcloudMsgPtr != nullptr) {
+      if (pointcloudMsgPtr->header.frame_id == fixed_frame_) {
+        pcld_in_fixed_frame_ = true;
+      } else { pcld_in_fixed_frame_ = false; }
+  }
 
   colors_ = {
        51/255.0, 160/255.0, 44/255.0,  //0
