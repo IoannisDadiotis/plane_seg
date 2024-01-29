@@ -408,8 +408,8 @@ go() {
     Block block;
     block.mSize << res.mSize[0], res.mSize[1], mBlockDimensions[2];
     block.mPose = res.mPose;
-    block.mPose.translation() -=
-      block.mPose.rotation().col(2)*mBlockDimensions[2]/2;
+    // comment offset along z axis of hull pose, not sure if needed unless for visualizaiton reasons
+//    block.mPose.translation() -= block.mPose.rotation().col(2)*mBlockDimensions[2]/2;
     block.mHull = res.mConvexHull;
     result.mBlocks.push_back(block);
   }
