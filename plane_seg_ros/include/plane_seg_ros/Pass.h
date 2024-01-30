@@ -15,28 +15,33 @@ class Pass{
     void elevationMapCallback(const grid_map_msgs::GridMap& msg);
     void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg);
 
-    void processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::Ptr& inCloud, Eigen::Vector3f origin, Eigen::Vector3f lookDir);
+    void processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::Ptr& inCloud,
+                      Eigen::Vector3f origin, Eigen::Vector3f lookDir);
     void processFromFile(int test_example);
 
     /**
      * @brief publishHullsAsCloud publishes the hull points.
      */
-    void publishHullsAsCloud(const std::string& cloud_frame, std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_ptrs, int secs, int nsecs);
+    void publishHullsAsCloud(const std::string& cloud_frame, std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_ptrs, int secs, int nsecs) const;
 
     /**
      * @brief publishHullsAsMarkers publishes line markers. Each message is a marker, the number of points is double
      * so that it draws a line.
      */
-    void publishHullsAsMarkers(const std::string& cloud_frame, std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs, int secs, int nsecs);
+    void publishHullsAsMarkers(const std::string& cloud_frame, std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs, int secs, int nsecs) const;
 
     /**
      * @brief publishHullsAsMarkerArray publishes line markers similar to publishHullAsMarkers but the the data
      * are an array of markers, each marker represents a hull.
      */
-    void publishHullsAsMarkerArray(const std::string& cloud_frame, std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs, int secs, int nsecs);
-    void printResultAsJson();
-    void publishResult(const std::string& cloud_frame);
+    void publishHullsAsMarkerArray(const std::string& cloud_frame, std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs, int secs, int nsecs) const;
+    /**
+     * @brief publishHullPose publishes the pose of the hull
+     * @param ref_frame is the frame to which the input pointcloud is expressed.
+     */
     void publishHullPose(const std::string& ref_frame) const;
+    void printResultAsJson();
+    void publishResult(const std::string& cloud_frame) const;
 
   private:
     std::vector<double> colors_;

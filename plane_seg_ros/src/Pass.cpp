@@ -170,7 +170,7 @@ void Pass::pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg){
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::Ptr& inCloud, Eigen::Vector3f origin, Eigen::Vector3f lookDir){
+void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::Ptr& inCloud, Eigen::Vector3f origin, Eigen::Vector3f lookDir) const {
 #ifdef WITH_TIMING
   auto tic = std::chrono::high_resolution_clock::now();
 #endif
@@ -257,7 +257,7 @@ void Pass::printResultAsJson(){
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-void Pass::publishResult(const std::string& cloud_frame){
+void Pass::publishResult(const std::string& cloud_frame) const {
   // convert result to a vector of point clouds
   std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs;
   for (size_t i=0; i<result_.mBlocks.size(); ++i){
@@ -296,7 +296,7 @@ void Pass::publishResult(const std::string& cloud_frame){
 // combine the individual clouds into one, with a different each
 void Pass::publishHullsAsCloud(const std::string& cloud_frame,
                                std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs,
-                               int secs, int nsecs){
+                               int secs, int nsecs) const {
   pcl::PointCloud<pcl::PointXYZRGB> combined_cloud;
   for (size_t i=0; i<cloud_ptrs.size(); ++i){
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rgb (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -327,7 +327,7 @@ void Pass::publishHullsAsCloud(const std::string& cloud_frame,
 /******************************************************************************************************/
 void Pass::publishHullsAsMarkers(const std::string& cloud_frame,
                                  std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs,
-                                 int secs, int nsecs){
+                                 int secs, int nsecs) const {
   geometry_msgs::Point point;
   std_msgs::ColorRGBA point_color;
   visualization_msgs::Marker marker;
@@ -410,7 +410,7 @@ void Pass::publishHullsAsMarkers(const std::string& cloud_frame,
 /******************************************************************************************************/
 void Pass::publishHullsAsMarkerArray(const std::string& cloud_frame,
                                      std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs,
-                                     int secs, int nsecs){
+                                     int secs, int nsecs) const {
   geometry_msgs::Point point;
   std_msgs::ColorRGBA point_color;
   visualization_msgs::MarkerArray ma;
