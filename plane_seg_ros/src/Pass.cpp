@@ -41,12 +41,16 @@ Eigen::Vector3f convertRobotPoseToSensorLookDir(Eigen::Isometry3d robot_pose){
 /******************************************************************************************************/
 /******************************************************************************************************/
 Pass::Pass(ros::NodeHandle node_):
-    node_(node_), tfBuffer_(ros::Duration(5.0)), tfListener_(tfBuffer_) {
+    tfBuffer_(ros::Duration(5.0)), tfListener_(tfBuffer_) {
   // get ros topic from ros server
-  std::string pointCloudTopic, elevationMapTopic;
+  std::string pointCloudTopic, elevationMapTopic, configFilePath;
   node_.getParam("/plane_seg/pointcloud_topic", pointCloudTopic);
   node_.getParam("/plane_seg/elevation_map_topic", elevationMapTopic);
   node_.getParam("/plane_seg/camera_frame", camera_frame_);
+
+  // get info file
+  node_.getParam("/plane_seg/configFile", configFilePath);
+  settings_ = planeseg::loadFitterSettings(configFilePath, "fitter", true);
 
   // subscribers
   grid_map_sub_ = node_.subscribe(elevationMapTopic, 1, &Pass::elevationMapCallback, this);
@@ -173,17 +177,9 @@ void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::P
   auto tic = std::chrono::high_resolution_clock::now();
 #endif
 
-  planeseg::BlockFitter fitter;
+  planeseg::BlockFitter fitter(settings_);
   fitter.setSensorPose(origin, lookDir);
   fitter.setCloud(inCloud);
-  fitter.setDebug(false); // MFALLON modification
-  fitter.setRemoveGround(false); // MFALLON modification from default
-
-  // this was 5 for LIDAR. changing to 10 really improved elevation map segmentation
-  // I think its because the RGB-D map can be curved
-  fitter.setMaxAngleOfPlaneSegmenter(10);
-  fitter.setMaxAngleFromHorizontal(120);
-
   result_ = fitter.go();
 #ifdef WITH_TIMING
   auto toc_1 = std::chrono::high_resolution_clock::now();

@@ -1,0 +1,31 @@
+fitter
+{
+    debug                           false
+    removeGround                    false       ; better keep false
+
+    ; this was 5 for LIDAR. changing to 10 really improved elevation map segmentation
+    ; I think its because the RGB-D map can be curved
+    maxAngleOfPlaneSegmenter        10.0
+    maxAngleFromHorizontal          120.0
+
+    rejectUnreachablePoints
+    {
+        active                  true
+        maxDistance             1.0
+        referencePoint
+        {
+            (0,0)                 0.0
+            (1,0)                 0.0
+            (2,0)                 0.0
+        }
+    }
+
+    downsampleResolution            0.01
+    maxRange                        3.0
+    minGroundZ                      1e10
+    maxGroundZ                      1e10
+    minHeightAboveGround            0.05
+    maxHeightAboveGround            1.0
+    areaThreshMin                   0.5
+    areaThreshMax                   1.5
+}

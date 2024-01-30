@@ -39,7 +39,6 @@ class Pass{
     void publishHullPose() const;
 
   private:
-    ros::NodeHandle node_;
     std::vector<double> colors_;
 
     ros::Subscriber point_cloud_sub_, grid_map_sub_, pose_sub_;
@@ -51,6 +50,7 @@ class Pass{
     tf2_ros::TransformListener tfListener_;
 
     planeseg::BlockFitter::Result result_;
+    planeseg::BlockFitter::Settings settings_;
 
     // usefull in case pointcloud is wrt fixed frame
     std::string camera_frame_;

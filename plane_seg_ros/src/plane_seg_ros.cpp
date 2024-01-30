@@ -30,15 +30,16 @@ int main( int argc, char** argv ){
 
   ros::init(argc, argv, "plane_seg");
   ros::NodeHandle nh("~");
+
+  // get ros params
+  bool run_test_program = false;
+  nh.param("/plane_seg/run_test_program", run_test_program, false);
+  std::cout << "run_test_program: " << run_test_program << "\n";
+
   std::unique_ptr<Pass> app = std::make_unique<Pass>(nh);
 
   ROS_INFO_STREAM("plane_seg ros ready");
   ROS_INFO_STREAM("=============================");
-
-  bool run_test_program = false;
-  nh.param("/plane_seg/run_test_program", run_test_program, false); 
-  std::cout << "run_test_program: " << run_test_program << "\n";
-
 
   // Enable this to run the test programs
   if (run_test_program){

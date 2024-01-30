@@ -28,7 +28,6 @@
 # pragma clang diagnostic pop
 #endif
 
-
 #include "plane_seg/PlaneFitter.hpp"
 #include "plane_seg/RobustNormalEstimator.hpp"
 #include "plane_seg/PlaneSegmenter.hpp"
@@ -36,8 +35,8 @@
 
 using namespace planeseg;
 
-BlockFitter::
-BlockFitter() {
+BlockFitter::BlockFitter()
+{
   setSensorPose(Eigen::Vector3f(0,0,0), Eigen::Vector3f(1,0,0));
   setBlockDimensions(Eigen::Vector3f(15+3/8.0, 15+5/8.0, 5+5/8.0)*0.0254);
   setDownsampleResolution(0.01);
@@ -50,6 +49,15 @@ BlockFitter() {
   setAreaThresholds(0.5, 1.5);
   setRectangleFitAlgorithm(RectangleFitAlgorithm::MinimumArea);
   setDebug(true);
+  setUnreachableRejection(false, 0.0, Eigen::Vector3f(0, 0, 0));
+}
+
+BlockFitter::BlockFitter(const Settings& settings)
+    : settings_(settings)
+{
+  setSensorPose(Eigen::Vector3f(0,0,0), Eigen::Vector3f(1,0,0));
+  setBlockDimensions(Eigen::Vector3f(15+3/8.0, 15+5/8.0, 5+5/8.0)*0.0254);
+  setRectangleFitAlgorithm(RectangleFitAlgorithm::MinimumArea);
 }
 
 void BlockFitter::
@@ -66,46 +74,46 @@ setBlockDimensions(const Eigen::Vector3f& iDimensions) {
 
 void BlockFitter::
 setDownsampleResolution(const float iRes) {
-  mDownsampleResolution = iRes;
+  settings_.downsampleResolution = iRes;
 }
 
 void BlockFitter::
 setRemoveGround(const bool iVal) {
-  mRemoveGround = iVal;
+  settings_.removeGround = iVal;
 }
 
 void BlockFitter::
 setGroundBand(const float iMinZ, const float iMaxZ) {
-  mMinGroundZ = iMinZ;
-  mMaxGroundZ = iMaxZ;
+  settings_.minGroundZ = iMinZ;
+  settings_.maxGroundZ = iMaxZ;
 }
 
 
 void BlockFitter::
 setHeightBand(const float iMinHeight, const float iMaxHeight) {
-  mMinHeightAboveGround = iMinHeight;
-  mMaxHeightAboveGround = iMaxHeight;
+  settings_.minHeightAboveGround = iMinHeight;
+  settings_.maxHeightAboveGround = iMaxHeight;
 }
 
 void BlockFitter::
 setMaxRange(const float iRange) {
-  mMaxRange = iRange;
+  settings_.maxRange = iRange;
 }
 
 void BlockFitter::
 setMaxAngleFromHorizontal(const float iDegrees) {
-  mMaxAngleFromHorizontal = iDegrees;
+  settings_.maxAngleFromHorizontal = iDegrees;
 }
 
 void BlockFitter::
 setMaxAngleOfPlaneSegmenter(const float iDegrees) {
-  mMaxAngleOfPlaneSegmenter = iDegrees;
+  settings_.maxAngleOfPlaneSegmenter = iDegrees;
 }
 
 void BlockFitter::
 setAreaThresholds(const float iMin, const float iMax) {
-  mAreaThreshMin = iMin;
-  mAreaThreshMax = iMax;
+  settings_.areaThreshMin = iMin;
+  settings_.areaThreshMax = iMax;
 }
 
 void BlockFitter::
@@ -120,8 +128,20 @@ setCloud(const LabeledCloud::Ptr& iCloud) {
 
 void BlockFitter::
 setDebug(const bool iVal) {
-  mDebug = iVal;
+  settings_.debug = iVal;
 }
+
+void BlockFitter::setSettings(const Settings& settings) {
+    settings_ = settings;
+}
+
+void BlockFitter::setUnreachableRejection(const bool& active, const float& distance,
+                                          const Eigen::Vector3f& referencePoint) {
+    settings_.removeUnreachable = std::move(active);
+    settings_.maximumDistance = std::move(distance);
+    settings_.reachableReference = std::move(referencePoint);
+}
+
 
 BlockFitter::Result BlockFitter::
 go() {
@@ -134,12 +154,12 @@ go() {
   LabeledCloud::Ptr cloud(new LabeledCloud());
   pcl::VoxelGrid<pcl::PointXYZL> voxelGrid;
   voxelGrid.setInputCloud(mCloud);
-  voxelGrid.setLeafSize(mDownsampleResolution, mDownsampleResolution,
-                        mDownsampleResolution);
+  voxelGrid.setLeafSize(settings_.downsampleResolution, settings_.downsampleResolution,
+                        settings_.downsampleResolution);
   voxelGrid.filter(*cloud);
   for (int i = 0; i < (int)cloud->size(); ++i) cloud->points[i].label = i;
 
-  if (mDebug) {
+  if (settings_.debug) {
     std::cout << "Original cloud size " << mCloud->size() << std::endl;
     std::cout << "Voxelized cloud size " << cloud->size() << std::endl;
     pcl::io::savePCDFileBinary("cloud_full.pcd", *cloud);
@@ -162,12 +182,12 @@ go() {
   pose.translation() = mOrigin;
 
   // ground removal
-  if (mRemoveGround) {
+  if (settings_.removeGround) {
     Eigen::Vector4f groundPlane;
 
     // filter points
-    float minZ = mMinGroundZ;
-    float maxZ = mMaxGroundZ;
+    float minZ = settings_.minGroundZ;
+    float maxZ = settings_.maxGroundZ;
     if ((minZ > 10000) && (maxZ > 10000)) {
       std::vector<float> zVals(cloud->size());
       for (int i = 0; i < (int)cloud->size(); ++i) {
@@ -204,7 +224,7 @@ go() {
     auto res = planeFitter.go(pts);
     groundPlane = res.mPlane;
     if (groundPlane[2] < 0) groundPlane = -groundPlane;
-    if (mDebug) {
+    if (settings_.debug) {
       std::cout << "dominant plane: " << groundPlane.transpose() << std::endl;
       std::cout << "  inliers: " << res.mInliers.size() << std::endl;
     }
@@ -246,22 +266,42 @@ go() {
       for (int i = 0; i < (int)cloud->size(); ++i) {
         Eigen::Vector3f p = cloud->points[i].getVector3fMap();
         float dist = p.dot(groundPlane.head<3>()) + groundPlane[3];
-        if ((dist < mMinHeightAboveGround) ||
-            (dist > mMaxHeightAboveGround)) continue;
+        if ((dist < settings_.minHeightAboveGround) ||
+            (dist > settings_.maxHeightAboveGround)) continue;
         float range = (p-mOrigin).norm();
-        if (range > mMaxRange) continue;
+        if (range > settings_.maxRange) continue;
         tempCloud->push_back(cloud->points[i]);
       }
       std::swap(tempCloud, cloud);
-      if (mDebug) {
+      if (settings_.debug) {
         std::cout << "Filtered cloud size " << cloud->size() << std::endl;
       }
     }
   }
 
+  // remove kinematically unreachable points
+  if (settings_.removeUnreachable) {
+      LabeledCloud::Ptr tempCloud(new LabeledCloud());
+      tempCloud->reserve(cloud->size());
+
+      for (int i = 0; i < (int)cloud->size(); ++i) {
+        Eigen::Vector3f p = cloud->points[i].getVector3fMap();
+        float distance = (p - settings_.reachableReference).norm();
+        if (distance > settings_.maximumDistance) {
+            continue;
+        } else {
+            tempCloud->push_back(cloud->points[i]);
+        }
+      }
+      std::swap(tempCloud, cloud);
+      if (settings_.debug) {
+        std::cout << "Filtered kinematically cloud size " << cloud->size() << std::endl;
+      }
+  }
+
   // normal estimation
   auto t0 = std::chrono::high_resolution_clock::now();
-  if (mDebug) {
+  if (settings_.debug) {
     std::cout << "computing normals..." << std::flush;
   }
   RobustNormalEstimator normalEstimator;
@@ -271,14 +311,14 @@ go() {
   normalEstimator.setMaxIterations(100);
   NormalCloud::Ptr normals(new NormalCloud());
   normalEstimator.go(cloud, *normals);
-  if (mDebug) {
+  if (settings_.debug) {
     auto t1 = std::chrono::high_resolution_clock::now();
     auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0);
     std::cout << "finished in " << dt.count()/1e3 << " sec" << std::endl;
   }
 
   // filter non-horizontal points
-  const float maxNormalAngle = mMaxAngleFromHorizontal*M_PI/180;
+  const float maxNormalAngle = settings_.maxAngleFromHorizontal*M_PI/180;
   LabeledCloud::Ptr tempCloud(new LabeledCloud());
   NormalCloud::Ptr tempNormals(new NormalCloud());
   tempCloud->reserve(normals->size());
@@ -294,7 +334,7 @@ go() {
   std::swap(tempCloud, cloud);
   std::swap(tempNormals, normals);
 
-  if (mDebug) {
+  if (settings_.debug) {
     std::cout << "Horizontal points remaining " << cloud->size() << std::endl;
     pcl::io::savePCDFileBinary("cloud.pcd", *cloud);
     pcl::io::savePCDFileBinary("robust_normals.pcd", *normals);
@@ -302,7 +342,7 @@ go() {
 
   // plane segmentation
   t0 = std::chrono::high_resolution_clock::now();
-  if (mDebug) {
+  if (settings_.debug) {
     std::cout << "segmenting planes..." << std::flush;
   }
   PlaneSegmenter segmenter;
@@ -310,10 +350,10 @@ go() {
   segmenter.setMaxError(0.05);
   // setMaxAngle was 5 for LIDAR. changing to 10 really improved elevation map segmentation
   // I think its because the RGB-D map can be curved
-  segmenter.setMaxAngle(mMaxAngleOfPlaneSegmenter);
+  segmenter.setMaxAngle(settings_.maxAngleOfPlaneSegmenter);
   segmenter.setMinPoints(100);
   PlaneSegmenter::Result segmenterResult = segmenter.go();
-  if (mDebug) {
+  if (settings_.debug) {
     auto t1 = std::chrono::high_resolution_clock::now();
     auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0);
     std::cout << "finished in " << dt.count()/1e3 << " sec" << std::endl;
@@ -365,7 +405,7 @@ go() {
     results.push_back(result);
   }
 
-  if (mDebug) {
+  if (settings_.debug) {
     std::ofstream ofs("boxes.txt");
     for (int i = 0; i < (int)results.size(); ++i) {
       auto& res = results[i];
@@ -413,7 +453,7 @@ go() {
     block.mHull = res.mConvexHull;
     result.mBlocks.push_back(block);
   }
-  if (mDebug) {
+  if (settings_.debug) {
     std::cout << "Surviving blocks: " << result.mBlocks.size() << std::endl;
   }
 

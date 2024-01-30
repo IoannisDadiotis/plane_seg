@@ -2,6 +2,6 @@
 
 <launch>
 
-  <node name="rviz_plane_seg" pkg="rviz" type="rviz" args="-d $(find plane_seg_ros)/config/plane_seg.rviz"  />
+  <node name="rviz_plane_seg" pkg="rviz" type="rviz" args="-d $(find plane_seg_ros)/rviz/plane_seg.rviz"  />
 
 </launch>
