@@ -10,13 +10,13 @@ fitter
 
     rejectUnreachablePoints
     {
-        active                  true
-        maxDistance             1.0
-        referencePoint
+        active                      true
+        maxDistance                 1.0
+        referencePoint                          ; expressed in the ref frame of the pointcloud
         {
-            (0,0)                 0.0
-            (1,0)                 0.0
-            (2,0)                 0.0
+            (0,0)                   0.0
+            (1,0)                   0.0
+            (2,0)                   0.0
         }
     }
 
