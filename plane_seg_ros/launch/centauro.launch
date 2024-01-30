@@ -24,6 +24,7 @@
     <param name="pointcloud_topic" value="$(arg pointcloud_topic)" />
     <param name="elevation_map_topic" value="$(arg elevation_map_topic)" />
     <param name="camera_frame" value="$(arg camera_prefix)_color_optical_frame" />
+    <param name="configFile" value="$(find plane_seg_ros)/config/config.info" />
   </node>
 
 </launch>
