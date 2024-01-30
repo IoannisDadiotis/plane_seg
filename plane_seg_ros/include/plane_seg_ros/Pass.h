@@ -36,7 +36,7 @@ class Pass{
     void publishHullsAsMarkerArray(const std::string& cloud_frame, std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs, int secs, int nsecs);
     void printResultAsJson();
     void publishResult(const std::string& cloud_frame);
-    void publishHullPose() const;
+    void publishHullPose(const std::string& ref_frame) const;
 
   private:
     std::vector<double> colors_;

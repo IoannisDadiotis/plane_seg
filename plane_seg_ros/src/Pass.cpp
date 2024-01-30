@@ -47,9 +47,7 @@ Pass::Pass(ros::NodeHandle node_):
   node_.getParam("/plane_seg/pointcloud_topic", pointCloudTopic);
   node_.getParam("/plane_seg/elevation_map_topic", elevationMapTopic);
   node_.getParam("/plane_seg/camera_frame", camera_frame_);
-
-  // get info file
-  node_.getParam("/plane_seg/configFile", configFilePath);
+  node_.getParam("/plane_seg/configFile", configFilePath);      // get info file
   settings_ = planeseg::loadFitterSettings(configFilePath, "fitter", true);
 
   // subscribers
@@ -283,7 +281,7 @@ void Pass::publishResult(const std::string& cloud_frame){
   if (hull_cloud_pub_.getNumSubscribers() > 0) publishHullsAsCloud(cloud_frame, cloud_ptrs, 0, 0);
   if (hull_markers_pub_.getNumSubscribers() > 0) publishHullsAsMarkers(cloud_frame, cloud_ptrs, 0, 0);
   if (hull_marker_array_pub_.getNumSubscribers() > 0) publishHullsAsMarkerArray(cloud_frame, cloud_ptrs, 0, 0);
-  publishHullPose();
+  publishHullPose(cloud_frame);
 //  printResultAsJson();
 
   //pcl::PCDWriter pcd_writer_;
@@ -496,14 +494,14 @@ void Pass::publishHullsAsMarkerArray(const std::string& cloud_frame,
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-void Pass::publishHullPose() const {
+void Pass::publishHullPose(const std::string& ref_frame) const {
     int i = 0;
     for (auto& i_hull: result_.mBlocks) {
         static tf2_ros::TransformBroadcaster br;
         Eigen::Isometry3d planePoseD = static_cast<Eigen::Isometry3d>(i_hull.mPose);
         geometry_msgs::TransformStamped transformStamped = tf2::eigenToTransform(planePoseD);
         transformStamped.header.stamp = ros::Time::now();
-        transformStamped.header.frame_id = "odometry/world";
+        transformStamped.header.frame_id = ref_frame;
         transformStamped.child_frame_id = "hull_" + std::to_string(i);
         br.sendTransform(transformStamped);
         i++;
