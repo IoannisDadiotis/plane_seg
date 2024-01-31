@@ -1,4 +1,5 @@
 #include "plane_seg/BlockFitter.hpp"
+#include <pcl_ros/features/normal_3d.h>
 
 #include <chrono>
 #include <fstream>
@@ -379,18 +380,24 @@ go() {
     if (label <= 0) continue;
     cloudMap[label].push_back(cloud->points[i].getVector3fMap());
   }
+  // a plane is represented as (a,b,c,d) where (a,b,c) the norma vector and d the distance of the plane from the origin
   struct Plane {
     MatrixX3f mPoints;
     Eigen::Vector4f mPlane;
   };
   std::vector<Plane> planes;
   planes.reserve(cloudMap.size());
-  for (auto it : cloudMap) {
+  for (auto it : cloudMap) {                    // actually loops over hulls
     int n = it.second.size();
     Plane plane;
     plane.mPoints.resize(n,3);
     for (int i = 0; i < n; ++i) plane.mPoints.row(i) = it.second[i];
     plane.mPlane = segmenterResult.mPlanes[it.first];
+
+    // flip normal, only consider the first point of each hull
+    pcl::PointXYZ firstPoint(plane.mPoints(0, 0) , plane.mPoints(0, 1), plane.mPoints(0, 2));
+    pcl::flipNormalTowardsViewpoint(firstPoint, mOrigin[0], mOrigin[1], mOrigin[2], plane.mPlane);
+
     planes.push_back(plane);
   }
 

@@ -22,19 +22,8 @@
 
 #include <eigen_conversions/eigen_msg.h>
 
-Eigen::Vector3f convertRobotPoseToSensorLookDir(Eigen::Isometry3d robot_pose){
-
-  Eigen::Quaterniond quat = Eigen::Quaterniond( robot_pose.rotation() );
-  double r,p,y;
-  quat_to_euler(quat, r, p, y);
-  //std::cout << r*180/M_PI << ", " << p*180/M_PI << ", " << y*180/M_PI << " rpy in Degrees\n";
-
-  double yaw = y;
-  double pitch = -p;
-  double xDir = cos(yaw)*cos(pitch);
-  double yDir = sin(yaw)*cos(pitch);
-  double zDir = sin(pitch);
-  return Eigen::Vector3f(xDir, yDir, zDir);
+Eigen::Vector3f convertRobotPoseToSensorLookDir(Eigen::Isometry3d robot_pose) {
+    return Eigen::Vector3f(robot_pose.linear()(0, 2), robot_pose.linear()(1, 2), robot_pose.linear()(2, 2)).normalized();
 }
 
 /******************************************************************************************************/
@@ -63,11 +52,16 @@ Pass::Pass(ros::NodeHandle node_):
 
   // check if pointcloud frame is the fixed frame, then
   boost::shared_ptr<sensor_msgs::PointCloud2 const> pointcloudMsgPtr = nullptr;
-  pointcloudMsgPtr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(pointCloudTopic, node_, ros::Duration(1));
-  if (pointcloudMsgPtr != nullptr) {
-      if (pointcloudMsgPtr->header.frame_id == fixed_frame_) {
-        pcld_in_fixed_frame_ = true;
-      } else { pcld_in_fixed_frame_ = false; }
+  while (pointcloudMsgPtr == nullptr) {
+      ROS_INFO_STREAM("Waiting for a first pointcloud message..");
+      pointcloudMsgPtr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(pointCloudTopic, node_);
+  }
+  if (pointcloudMsgPtr->header.frame_id == fixed_frame_) {
+    pcld_in_fixed_frame_ = true;
+    ROS_INFO_STREAM("Input pointcloud has fixed reference frame " << fixed_frame_);
+  } else {
+    pcld_in_fixed_frame_ = false;
+    ROS_INFO_STREAM("Input pointcloud has reference frame " << fixed_frame_);
   }
 
   colors_ = {
@@ -146,12 +140,19 @@ void Pass::pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg){
   planeseg::LabeledCloud::Ptr inCloud(new planeseg::LabeledCloud());
   pcl::fromROSMsg(*msg,*inCloud);
 
+  std::string originalCloudFrame;
+  if (pcld_in_fixed_frame_) {
+      originalCloudFrame = "D435_head_camera_color_optical_frame";
+  } else {
+      originalCloudFrame = msg->header.frame_id;
+  }
+
   // Look up transform from fixed frame to point cloud frame
   geometry_msgs::TransformStamped fixed_frame_to_cloud_frame_tf;
   Eigen::Isometry3d map_T_pointcloud;
-  if (tfBuffer_.canTransform(fixed_frame_, msg->header.frame_id, msg->header.stamp, ros::Duration(0.0)))
+  if (tfBuffer_.canTransform(fixed_frame_, originalCloudFrame, msg->header.stamp, ros::Duration(0.0)))
   {
-    fixed_frame_to_cloud_frame_tf = tfBuffer_.lookupTransform(fixed_frame_, msg->header.frame_id, msg->header.stamp, ros::Duration(0.0));
+    fixed_frame_to_cloud_frame_tf = tfBuffer_.lookupTransform(fixed_frame_, originalCloudFrame, msg->header.stamp, ros::Duration(0.0));
     map_T_pointcloud = tf2::transformToEigen(fixed_frame_to_cloud_frame_tf);
   }
   else
@@ -183,10 +184,11 @@ void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::P
   auto toc_1 = std::chrono::high_resolution_clock::now();
 #endif
 
+  // publish look pose
   if (look_pose_pub_.getNumSubscribers() > 0) {
-    Eigen::Vector3f rz = lookDir;
-    Eigen::Vector3f rx = rz.cross(Eigen::Vector3f::UnitZ());
-    Eigen::Vector3f ry = rz.cross(rx);
+    Eigen::Vector3f rx = lookDir;
+    Eigen::Vector3f ry = rx.cross(Eigen::Vector3f::UnitZ());
+    Eigen::Vector3f rz = rx.cross(ry);
     Eigen::Matrix3f rotation;
     rotation.col(0) = rx.normalized();
     rotation.col(1) = ry.normalized();
@@ -203,6 +205,7 @@ void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::P
     look_pose_pub_.publish(msg);
   }
 
+  // publish input cloud
   if (received_cloud_pub_.getNumSubscribers() > 0) {
     sensor_msgs::PointCloud2 output;
     pcl::toROSMsg(*inCloud, output);
@@ -210,7 +213,7 @@ void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::P
     output.header.frame_id = cloudFrame;
     received_cloud_pub_.publish(output);
   }
-
+  // publish
   publishResult(cloudFrame);
 
 #ifdef WITH_TIMING
