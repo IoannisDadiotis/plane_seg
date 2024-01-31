@@ -170,7 +170,7 @@ void Pass::pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg){
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::Ptr& inCloud, Eigen::Vector3f origin, Eigen::Vector3f lookDir) const {
+void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::Ptr& inCloud, Eigen::Vector3f origin, Eigen::Vector3f lookDir) {
 #ifdef WITH_TIMING
   auto tic = std::chrono::high_resolution_clock::now();
 #endif
