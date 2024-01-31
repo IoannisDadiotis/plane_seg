@@ -170,16 +170,16 @@ go() {
   // pose
   cloud->sensor_origin_.head<3>() = mOrigin;
   cloud->sensor_origin_[3] = 1;
-  Eigen::Vector3f rz = mLookDir;
-  Eigen::Vector3f rx = rz.cross(Eigen::Vector3f::UnitZ());
-  Eigen::Vector3f ry = rz.cross(rx);
-  Eigen::Matrix3f rotation;
-  rotation.col(0) = rx.normalized();
-  rotation.col(1) = ry.normalized();
-  rotation.col(2) = rz.normalized();
-  Eigen::Isometry3f pose = Eigen::Isometry3f::Identity();
-  pose.linear() = rotation;
-  pose.translation() = mOrigin;
+//  Eigen::Vector3f rz = mLookDir;                              // not used so better to comment
+//  Eigen::Vector3f rx = rz.cross(Eigen::Vector3f::UnitZ());
+//  Eigen::Vector3f ry = rz.cross(rx);
+//  Eigen::Matrix3f rotation;
+//  rotation.col(0) = rx.normalized();
+//  rotation.col(1) = ry.normalized();
+//  rotation.col(2) = rz.normalized();
+//  Eigen::Isometry3f pose = Eigen::Isometry3f::Identity();
+//  pose.linear() = rotation;
+//  pose.translation() = mOrigin;
 
   // ground removal
   if (settings_.removeGround) {
