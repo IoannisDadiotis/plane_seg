@@ -7,6 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /hull markers1/Namespaces1
+        - /look pose1
+        - /TF1
       Splitter Ratio: 0.6061320900917053
     Tree Height: 907
   - Class: rviz/Selection
@@ -94,6 +96,9 @@ Visualization Manager:
       Name: hull marker array
       Namespaces:
         hull_0: true
+        hull_1: true
+        hull_2: true
+        hull_3: true
       Queue Size: 100
       Value: true
     - Alpha: 0.5
@@ -125,11 +130,11 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Alpha: 1
-      Axes Length: 0.5
+      Axes Length: 0.15000000596046448
       Axes Radius: 0.05000000074505806
       Class: rviz/Pose
       Color: 255; 25; 0
-      Enabled: false
+      Enabled: true
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
       Name: look pose
@@ -139,7 +144,7 @@ Visualization Manager:
       Shape: Axes
       Topic: /plane_seg/look_pose
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 0.4000000059604645
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -799,6 +804,14 @@ Visualization Manager:
           Value: false
         hip2_4:
           Value: false
+        hull_0:
+          Value: true
+        hull_1:
+          Value: true
+        hull_2:
+          Value: true
+        hull_3:
+          Value: true
         imu_link:
           Value: false
         knee_1:
@@ -834,11 +847,19 @@ Visualization Manager:
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
-      Show Arrows: true
+      Show Arrows: false
       Show Axes: true
       Show Names: true
       Tree:
         odometry/world:
+          hull_0:
+            {}
+          hull_1:
+            {}
+          hull_2:
+            {}
+          hull_3:
+            {}
           pelvis:
             D435i_camera_bottom_screw_frame:
               D435i_camera_link:
@@ -994,7 +1015,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.02126407623291
+      Distance: 4.290595531463623
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -1002,17 +1023,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.1316399574279785
-        Y: 0.1492110639810562
-        Z: 0.48086410760879517
+        X: 0.7047262787818909
+        Y: 0.79203861951828
+        Z: 0.7376665472984314
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.27979570627212524
+      Pitch: 0.4147956371307373
       Target Frame: <Fixed Frame>
-      Yaw: 3.5341861248016357
+      Yaw: 4.289190769195557
     Saved: ~
 Window Geometry:
   Displays:
