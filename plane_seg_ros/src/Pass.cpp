@@ -5,11 +5,13 @@
 #include <ros/package.h>
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_ros/GridMapRosConverter.hpp>
+#include <plane_seg_ros/common/RosMsgConversions.h>
 
 // ros msgs
 #include <geometry_msgs/PoseStamped.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <plane_seg_ros/convex_hulls.h>
 
 // tf
 #include <tf2_ros/transform_broadcaster.h>
@@ -50,6 +52,7 @@ Pass::Pass(ros::NodeHandle node_):
   hull_markers_pub_ = node_.advertise<visualization_msgs::Marker>("/plane_seg/hull_markers", 10);
   hull_marker_array_pub_ = node_.advertise<visualization_msgs::MarkerArray>("/plane_seg/hull_marker_array", 10);
   look_pose_pub_ = node_.advertise<geometry_msgs::PoseStamped>("/plane_seg/look_pose", 10);
+  detected_hulls_pub_ = node_.advertise<plane_seg_ros::convex_hulls>("/plane_seg/detected_hulls", 10);
 
   // check if pointcloud frame is the fixed frame, then
   boost::shared_ptr<sensor_msgs::PointCloud2 const> pointcloudMsgPtr = nullptr;
@@ -285,7 +288,8 @@ void Pass::publishResult(const std::string& cloud_frame) const {
   if (hull_cloud_pub_.getNumSubscribers() > 0) publishHullsAsCloud(cloud_frame, cloud_ptrs, 0, 0);
   if (hull_markers_pub_.getNumSubscribers() > 0) publishHullsAsMarkers(cloud_frame, cloud_ptrs, 0, 0);
   if (hull_marker_array_pub_.getNumSubscribers() > 0) publishHullsAsMarkerArray(cloud_frame, cloud_ptrs, 0, 0);
-  publishHullPose(cloud_frame);
+  if (detected_hulls_pub_.getNumSubscribers() > 0) publishDetectedHulls(fixed_frame_);
+  publishHullPoseAsTransfomation(cloud_frame);
 //  printResultAsJson();
 
   //pcl::PCDWriter pcd_writer_;
@@ -498,7 +502,7 @@ void Pass::publishHullsAsMarkerArray(const std::string& cloud_frame,
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-void Pass::publishHullPose(const std::string& ref_frame) const {
+void Pass::publishHullPoseAsTransfomation(const std::string& ref_frame) const {
     int i = 0;
     for (auto& i_hull: result_.mBlocks) {
         static tf2_ros::TransformBroadcaster br;
@@ -510,6 +514,22 @@ void Pass::publishHullPose(const std::string& ref_frame) const {
         br.sendTransform(transformStamped);
         i++;
     }
+}
+
+/******************************************************************************************************/
+/******************************************************************************************************/
+/******************************************************************************************************/
+void Pass::publishDetectedHulls(const std::string& ref_frame) const {
+    plane_seg_ros::convex_hulls hullsMsg;
+    hullsMsg.header.frame_id = ref_frame;
+    hullsMsg.header.stamp = ros::Time::now();
+    hullsMsg.hulls.reserve(result_.mBlocks.size());
+
+    for (auto& i_hull: result_.mBlocks) {
+        plane_seg_ros::convex_hull hullMsg = createConvexHullMsg(i_hull);
+        hullsMsg.hulls.push_back(hullMsg);
+    }
+    detected_hulls_pub_.publish(hullsMsg);
 }
 
 /******************************************************************************************************/

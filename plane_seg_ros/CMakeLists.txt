@@ -17,16 +17,28 @@ find_package(catkin REQUIRED COMPONENTS
   grid_map_ros
   grid_map_msgs
   plane_seg
+  message_generation
 )
 
 find_package(OpenCV 3.0 QUIET)
 
+add_message_files(
+  FILES
+  convex_hull.msg
+  convex_hulls.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+  std_msgs
+)
+
 catkin_package(
   INCLUDE_DIRS
     #include
-  CATKIN_DEPENDS eigen_conversions pcl_conversions tf_conversions pcl_ros plane_seg
+  CATKIN_DEPENDS eigen_conversions pcl_conversions tf_conversions pcl_ros plane_seg message_runtime
 )
-
 
 include_directories(
   include

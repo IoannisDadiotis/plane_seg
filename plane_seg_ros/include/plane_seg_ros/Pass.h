@@ -35,11 +35,19 @@ class Pass{
      * are an array of markers, each marker represents a hull.
      */
     void publishHullsAsMarkerArray(const std::string& cloud_frame, std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_ptrs, int secs, int nsecs) const;
+
     /**
      * @brief publishHullPose publishes the pose of the hull
      * @param ref_frame is the frame to which the input pointcloud is expressed.
      */
-    void publishHullPose(const std::string& ref_frame) const;
+    void publishHullPoseAsTransfomation(const std::string& ref_frame) const;
+
+    /**
+     * @brief publishDetectedHulls publishes all the detected hulls and information related with them
+     * @param ref_frame the reference frame to which the hulls refer, usually fixed_fame
+     */
+    void publishDetectedHulls(const std::string& ref_frame) const;
+
     void printResultAsJson();
     void publishResult(const std::string& cloud_frame) const;
 
@@ -47,7 +55,8 @@ class Pass{
     std::vector<double> colors_;
 
     ros::Subscriber point_cloud_sub_, grid_map_sub_, pose_sub_;
-    ros::Publisher received_cloud_pub_, hull_cloud_pub_, hull_markers_pub_, look_pose_pub_, hull_marker_array_pub_;
+    ros::Publisher received_cloud_pub_, hull_cloud_pub_, hull_markers_pub_, look_pose_pub_;
+    ros::Publisher hull_marker_array_pub_, detected_hulls_pub_;
 
     std::string fixed_frame_;  // global frame in which all results are published
 
