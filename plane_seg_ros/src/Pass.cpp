@@ -36,8 +36,9 @@ Pass::Pass(ros::NodeHandle node_):
   node_.getParam("/plane_seg/pointcloud_topic", pointCloudTopic);
   node_.getParam("/plane_seg/elevation_map_topic", elevationMapTopic);
   node_.getParam("/plane_seg/camera_frame", camera_frame_);
-  node_.getParam("/plane_seg/configFile", configFilePath);      // get info file
-  settings_ = planeseg::loadFitterSettings(configFilePath, "fitter", true);
+  node_.getParam("/plane_seg/configFile", configFilePath);                      // get info file
+  settings_ = planeseg::loadFitterSettings(configFilePath, "fitter", true);     // get settings
+  loadData::loadCppDataType(configFilePath, "fixedFrame", fixed_frame_);          // get fixed frame name
 
   // subscribers
   grid_map_sub_ = node_.subscribe(elevationMapTopic, 1, &Pass::elevationMapCallback, this);

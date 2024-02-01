@@ -49,7 +49,7 @@ class Pass{
     ros::Subscriber point_cloud_sub_, grid_map_sub_, pose_sub_;
     ros::Publisher received_cloud_pub_, hull_cloud_pub_, hull_markers_pub_, look_pose_pub_, hull_marker_array_pub_;
 
-    std::string fixed_frame_ = "odometry/world";  // Frame in which all results are published. "odom" for backwards-compatibility. Likely should be "map".
+    std::string fixed_frame_;  // global frame in which all results are published
 
     tf2_ros::Buffer tfBuffer_;
     tf2_ros::TransformListener tfListener_;

@@ -1,3 +1,5 @@
+fixedFrame                          odometry/world
+
 fitter
 {
     debug                           false
