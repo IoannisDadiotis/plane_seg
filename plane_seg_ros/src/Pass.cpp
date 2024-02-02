@@ -146,7 +146,7 @@ void Pass::pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg){
 
   std::string originalCloudFrame;
   if (pcld_in_fixed_frame_) {
-      originalCloudFrame = "D435_head_camera_color_optical_frame";
+      originalCloudFrame = camera_frame_;
   } else {
       originalCloudFrame = msg->header.frame_id;
   }
@@ -161,7 +161,7 @@ void Pass::pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg){
   }
   else
   {
-    ROS_WARN_STREAM("Cannot look up transform from '" << msg->header.frame_id << "' to fixed frame ('" << fixed_frame_ <<"')");
+    ROS_WARN_STREAM("Cannot look up transform from '" << originalCloudFrame << "' to fixed frame ('" << fixed_frame_ <<"')");
   }
 
   Eigen::Vector3f origin, lookDir;
