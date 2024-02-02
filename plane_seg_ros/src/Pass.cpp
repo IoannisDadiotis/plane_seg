@@ -204,7 +204,7 @@ void Pass::processCloud(const std::string& cloudFrame, planeseg::LabeledCloud::P
 
     geometry_msgs::PoseStamped msg;
     msg.header.stamp = ros::Time(0, 0);
-    msg.header.frame_id = cloudFrame;
+    msg.header.frame_id = fixed_frame_;
     tf::poseEigenToMsg(pose_d, msg.pose);
     look_pose_pub_.publish(msg);
   }
