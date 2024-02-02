@@ -2,18 +2,18 @@
 <launch>
   <!-- camera-related names -->
   <arg name="camera_real_robot" default="false"/>
-  <arg unless="$(arg camera_real_robot)"  name="camera_prefix" value="/D435_head_camera" />
-  <arg if="$(arg camera_real_robot)"  name="camera_prefix" value="/D435i/D435i_camera_head" />
+  <arg unless="$(arg camera_real_robot)"  name="camera_prefix" value="D435_head_camera" />
+  <arg if="$(arg camera_real_robot)"  name="camera_prefix" value="D435i/D435i_camera_head" />
 
   <!--arg name="pointcloud_topic" default="/velodyne_points"/-->
-  <arg name="pointcloud_topic" default="$(arg camera_prefix)/depth/color/points"/>
+  <arg name="pointcloud_topic" default="/$(arg camera_prefix)/depth/color/points"/>
   <arg name="elevation_map_topic" default="/elevation_mapping/elevation_map"/>
 
   <!--arg name="seg_start_delay" default="0.0" /-->   
   
   <!-- remove points on the robot -->
   <arg name="filter_robot_body" default="true" />
-  <arg if="$(arg filter_robot_body)" name="pointcloud_topic" value="$(arg camera_prefix)/depth/color/points_filtered" />
+  <arg if="$(arg filter_robot_body)" name="pointcloud_topic" value="/$(arg camera_prefix)/depth/color/points_filtered" />
   <include if="$(arg filter_robot_body)" file="$(find robot_body_filter_node)/launch/filter_sensors_cloud.launch">
     <arg name="camera_real_robot" value="$(arg camera_real_robot)" />
   </include>
