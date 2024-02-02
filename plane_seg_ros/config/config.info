@@ -7,13 +7,13 @@ fitter
 
     ; this was 5 for LIDAR. changing to 10 really improved elevation map segmentation
     ; I think its because the RGB-D map can be curved
-    maxAngleOfPlaneSegmenter        10.0
+    maxAngleOfPlaneSegmenter        10.0            ; this seems to affect the accepted misalignment between points of a plane
     maxAngleFromHorizontal          120.0
 
     rejectUnreachablePoints
     {
-        active                      true
-        maxDistance                 1.0
+        active                      false
+        maxDistance                 1.75
         referencePoint                          ; expressed in the ref frame of the pointcloud
         {
             (0,0)                   0.0
